@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Air Horse Kart
 
-## Getting Started
+A super cute pastel go-kart racing game made with Next.js and Three.js.
 
-First, run the development server:
+## Features
+
+- Pastel 3D go-kart with cute helmet driver and crown
+- Curvy candy race track
+- Mobile touch controls
+- Keyboard controls
+- Drift charging
+- Turbo boost
+- Hearts as pickups
+- Cute cloud obstacles
+- Pause and restart UI
+- No GLB assets required
+
+## Controls
+
+### Mobile
+
+- Left arrow button: steer left
+- Right arrow button: steer right
+- DRIFT: hold while steering to charge boost
+- TURBO: spend boost when the meter is ready
+
+### Keyboard
+
+- A/D or arrow keys: steer
+- Space or Shift: drift
+- W or Up Arrow: turbo
+- R: restart after crash
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Files
 
-## Learn More
+```text
+app/layout.jsx
+app/page.jsx
+app/globals.css
+components/CuteKartGame.jsx
+package.json
+next.config.mjs
+jsconfig.json
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This version uses procedural Three.js geometry and canvas textures, so it works without external images or model files. You can later replace the kart group with a GLB model using `GLTFLoader`.
