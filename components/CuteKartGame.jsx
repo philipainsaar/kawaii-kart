@@ -14,7 +14,7 @@ export default function CuteKartGame() {
 
   const [score, setScore] = useState(0);
   const [boost, setBoost] = useState(0);
-  const [status, setStatus] = useState("Collect hearts and ride through happy clouds");
+  const [status, setStatus] = useState("Collect hearts, avoid clouds");
   const [gameOver, setGameOver] = useState(false);
   const [paused, setPaused] = useState(false);
 
@@ -36,6 +36,7 @@ export default function CuteKartGame() {
     let trackScroll = 0;
     let playerOffset = 0;
     let playerVelocity = 0;
+    let worldShift = 0;
     let last = performance.now();
 
     const scene = new THREE.Scene();
@@ -395,17 +396,8 @@ export default function CuteKartGame() {
     const kart = makeKart();
     scene.add(kart);
 
-    function rawTrackCurve(t) {
-      return Math.sin(t * 0.052) * 2.35 + Math.sin(t * 0.018 + 1.7) * 2.1 + Math.sin(t * 0.109) * 0.32;
-    }
-
     function trackCurve(t) {
-      // Start the race in the exact center, then slowly bloom into cute curves.
-      // This keeps the first road pieces and the kart lined up in the middle.
-      const startCenter = rawTrackCurve(0);
-      const normalizedCurve = rawTrackCurve(t) - startCenter;
-      const curveFade = THREE.MathUtils.smoothstep(t, 14, 42);
-      return normalizedCurve * curveFade;
+      return Math.sin(t * 0.052) * 2.35 + Math.sin(t * 0.018 + 1.7) * 2.1 + Math.sin(t * 0.109) * 0.32;
     }
 
     function trackAngle(t) {
@@ -519,7 +511,7 @@ export default function CuteKartGame() {
     for (let i = 0; i < 9; i += 1) {
       const cloudPuff = makeCloudSprite({ face: true, color: "#fff7fe" });
       cloudPuff.scale.set(1.05, 0.62, 1);
-      cloudPuff.userData.kind = "cloud";
+      cloudPuff.userData.kind = "obstacle";
       spawnTrackItem(cloudPuff, 35, 130);
       scene.add(cloudPuff);
       items.push(cloudPuff);
@@ -547,7 +539,7 @@ export default function CuteKartGame() {
       boostValue = clamp(boostValue - 35, 0, 100);
       setStatus("Turbo hearts! ✦");
       setTimeout(() => {
-        if (!crashed) setStatus("Collect hearts and ride through happy clouds");
+        if (!crashed) setStatus("Collect hearts, avoid clouds");
       }, 950);
     }
 
@@ -560,11 +552,12 @@ export default function CuteKartGame() {
       trackScroll = 0;
       playerOffset = 0;
       playerVelocity = 0;
+      worldShift = 0;
       kart.position.set(0, 0, 2.15);
       kart.rotation.set(0, 0, 0);
       items.forEach((item) => spawnTrackItem(item, 20, 125));
       setGameOver(false);
-      setStatus("Collect hearts and ride through happy clouds");
+      setStatus("Collect hearts, avoid clouds");
       updateUi(performance.now(), true);
     }
 
@@ -574,7 +567,7 @@ export default function CuteKartGame() {
       if (crashed) return;
       crashed = true;
       setGameOver(true);
-      setStatus("Soft sparkle pause");
+      setStatus("Cloud bonk! Press R");
     }
 
     const keys = { left: false, right: false, drift: false, turbo: false };
@@ -605,7 +598,14 @@ export default function CuteKartGame() {
     window.addEventListener("keyup", onKeyUp);
     window.addEventListener("resize", onResize);
 
+    function updateWorldShift() {
+      // 2D racing style: the kart stays locked to the screen center.
+      // Steering moves the road, pickups, scenery, and track center under the kart.
+      worldShift = trackCurve(trackScroll + 2.9) + playerOffset;
+    }
+
     function updateRoad() {
+      updateWorldShift();
       const modulo = ((trackScroll % segmentLength) + segmentLength) % segmentLength;
       for (let i = 0; i < roadSegments.length; i += 1) {
         const dist = i * segmentLength - modulo;
@@ -613,7 +613,7 @@ export default function CuteKartGame() {
         const center = trackCurve(worldT);
         const angle = trackAngle(worldT);
         const segment = roadSegments[i];
-        segment.position.set(center, 0, 5.1 - dist);
+        segment.position.set(center - worldShift, 0, 5.1 - dist);
         segment.rotation.y = angle;
       }
     }
@@ -626,7 +626,7 @@ export default function CuteKartGame() {
       }
       const d = obj.userData.distance;
       const center = trackCurve(trackScroll + d);
-      obj.position.x = center + obj.userData.side * obj.userData.offset;
+      obj.position.x = center + obj.userData.side * obj.userData.offset - worldShift;
       obj.position.z = kart.position.z - d;
       if (yFallback) obj.position.y = yFallback;
     }
@@ -638,7 +638,7 @@ export default function CuteKartGame() {
 
         const d = item.userData.distance;
         const center = trackCurve(trackScroll + d);
-        item.position.x = center + item.userData.lane;
+        item.position.x = center + item.userData.lane - worldShift;
         item.position.z = kart.position.z - d;
 
         if (item.userData.kind === "heart") {
@@ -659,18 +659,11 @@ export default function CuteKartGame() {
             boostValue = clamp(boostValue + 12, 0, 100);
             setStatus("Sweet heart collected ♡");
             setTimeout(() => {
-              if (!crashed) setStatus("Collect hearts and ride through happy clouds");
+              if (!crashed) setStatus("Collect hearts, avoid clouds");
             }, 650);
             spawnTrackItem(item, 90, 150);
-          } else if (item.userData.kind === "cloud") {
-            item.visible = false;
-            scoreValue += 5;
-            boostValue = clamp(boostValue + 5, 0, 100);
-            setStatus("Soft cloud sparkle +5 ☁");
-            setTimeout(() => {
-              if (!crashed) setStatus("Collect hearts and ride through happy clouds");
-            }, 650);
-            spawnTrackItem(item, 90, 150);
+          } else {
+            crash();
           }
         }
       }
@@ -746,9 +739,9 @@ export default function CuteKartGame() {
         playerOffset += playerVelocity * dt;
         playerOffset = clamp(playerOffset, -3.05, 3.05);
 
-        const roadCenterAtKart = trackCurve(trackScroll + 2.9);
-        kart.position.x = lerp(kart.position.x, roadCenterAtKart + playerOffset, 0.22);
+        kart.position.x = 0;
         kart.position.y = Math.sin(now * 0.012) * 0.035;
+        kart.position.z = 2.15;
         kart.rotation.z = lerp(kart.rotation.z, -steer * (drifting ? 0.26 : 0.12), 0.13);
         kart.rotation.y = lerp(kart.rotation.y, -steer * (drifting ? 0.42 : 0.22), 0.12);
 
@@ -862,7 +855,7 @@ export default function CuteKartGame() {
         <div className="cuteKartGameOver">
           <div className="cuteKartGameOverCard">
             <div className="gameOverIcon">☁️</div>
-            <div className="cuteKartGameOverTitle">Soft Sparkle!</div>
+            <div className="cuteKartGameOverTitle">Cloud Bonk!</div>
             <div className="cuteKartGameOverText">Hearts collected: {score}</div>
             <button type="button" className="cuteKartRestart" onClick={() => restartRef.current?.()}>
               Restart race
