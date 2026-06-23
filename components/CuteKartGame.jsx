@@ -13,13 +13,13 @@ const ASSET_PATHS = {
   grass: "/textures/grass-seamless.jpg",
 };
 
-// One tiny level gap prevents z-fighting, while keeping grass, road, and props
-// visually on the same floor.
-const SURFACE_Y = 0.02;
-const ROAD_Y = SURFACE_Y + 0.0012;
-const KART_Z = 1.28;
-const KART_WIDTH = 3.65;
-const TREE_LIFT = 0.075;
+// Shared world floor. The road is a thin slab sitting on the grass, not a sunken plane.
+const SURFACE_Y = 0.0;
+const ROAD_THICKNESS = 0.018;
+const ROAD_TOP_Y = SURFACE_Y + ROAD_THICKNESS;
+const KART_Z = -1.05;
+const KART_WIDTH = 4.35;
+const TREE_LIFT = 0.08;
 
 export default function CuteKartGame() {
   const mountRef = useRef(null);
@@ -125,21 +125,21 @@ export default function CuteKartGame() {
 
         const grassMat = new THREE.MeshBasicMaterial({ map: grassTexture });
 
-        // Grass, road, kart wheels, and tree bases all share this same visual floor.
-        // The road is only 0.0012 units above the grass so it cannot flicker.
+        // Grass is the floor. The road is now a tiny slab sitting directly on it,
+        // so there is no visible gap between the road edge and the grass.
         ground = new THREE.Mesh(new THREE.PlaneGeometry(180, 240), grassMat);
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = SURFACE_Y;
         scene.add(ground);
 
         kartRoot = new THREE.Group();
-        kartRoot.position.set(0, SURFACE_Y, KART_Z);
+        kartRoot.position.set(0, ROAD_TOP_Y, KART_Z);
         scene.add(kartRoot);
 
         kartModel = kartScene;
         prepareModel(kartModel);
         fitModel(kartModel, KART_WIDTH);
-        kartModel.position.y += 0.085;
+        kartModel.position.y += 0.035;
         kartModel.rotation.y = 0;
         kartRoot.add(kartModel);
 
@@ -228,10 +228,10 @@ export default function CuteKartGame() {
         group.userData.baseZ = -i * length;
         group.userData.length = length;
         group.userData.total = total;
-        group.position.y = ROAD_Y;
+        group.position.y = SURFACE_Y;
 
-        const road = new THREE.Mesh(new THREE.PlaneGeometry(roadWidth, length + 0.08), roadMat);
-        road.rotation.x = -Math.PI / 2;
+        const road = new THREE.Mesh(new THREE.BoxGeometry(roadWidth, ROAD_THICKNESS, length + 0.1), roadMat);
+        road.position.y = ROAD_THICKNESS / 2;
         group.add(road);
 
         for (const side of [-1, 1]) {
@@ -239,12 +239,12 @@ export default function CuteKartGame() {
             new THREE.BoxGeometry(0.54, 0.075, length + 0.08),
             i % 2 === 0 ? curbPinkMat : curbWhiteMat
           );
-          curb.position.set(side * (roadWidth / 2 + 0.25), 0.035, 0);
+          curb.position.set(side * (roadWidth / 2 + 0.18), ROAD_TOP_Y + 0.024, 0);
           group.add(curb);
         }
 
         const dash = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.026, 1.65), roadLineMat);
-        dash.position.set(0, 0.024, 0);
+        dash.position.set(0, ROAD_TOP_Y + 0.014, 0);
         group.add(dash);
 
         roadSegments.push(group);
@@ -266,10 +266,11 @@ export default function CuteKartGame() {
         tree.rotation.y = Math.random() * Math.PI * 2;
         tree.scale.multiplyScalar(0.8 + (i % 4) * 0.07);
 
-        // Some GLB exports have pivots below the visible trunk. Measure each clone
-        // once and lift it so the lowest visible point sits above the grass.
+        // Some GLB exports have their visible model offset from the root pivot.
+        // Keep that original root offset, then lift the clone so the full tree sits above grass.
+        tree.updateMatrixWorld(true);
         const treeBox = new THREE.Box3().setFromObject(tree);
-        tree.userData.baseY = SURFACE_Y + TREE_LIFT - treeBox.min.y;
+        tree.userData.baseY = tree.position.y + (SURFACE_Y + TREE_LIFT - treeBox.min.y);
 
         trees.push(tree);
         scene.add(tree);
@@ -295,7 +296,7 @@ export default function CuteKartGame() {
         line.userData.baseZ = -i * 6;
         line.userData.total = 120;
         line.userData.x = (Math.random() - 0.5) * 15;
-        line.position.y = SURFACE_Y + 0.045;
+        line.position.y = ROAD_TOP_Y + 0.045;
         speedLines.push(line);
         scene.add(line);
       }
@@ -327,7 +328,7 @@ export default function CuteKartGame() {
       setHearts(0);
 
       if (kartRoot) {
-        kartRoot.position.set(0, SURFACE_Y, KART_Z);
+        kartRoot.position.set(0, ROAD_TOP_Y, KART_Z);
         kartRoot.rotation.set(0, 0, 0);
       }
 
@@ -362,7 +363,7 @@ export default function CuteKartGame() {
         const center = centerForZ(z);
         item.position.z = z;
         item.position.x = center - playerOffset + item.userData.lane;
-        item.position.y = SURFACE_Y + 1.08 + Math.sin(now * 0.006 + item.userData.baseZ) * 0.18;
+        item.position.y = ROAD_TOP_Y + 1.08 + Math.sin(now * 0.006 + item.userData.baseZ) * 0.18;
         item.rotation.z += 0.05;
 
         if (item.visible && Math.abs(item.position.z - kartZ) < 0.85 && Math.abs(item.position.x) < 0.72) {
@@ -425,7 +426,7 @@ export default function CuteKartGame() {
         // The kart remains locked in the center, 2D-racer style.
         kartRoot.position.x = 0;
         kartRoot.position.z = KART_Z;
-        kartRoot.position.y = SURFACE_Y + 0.035 + Math.sin(now * 0.018) * 0.035;
+        kartRoot.position.y = ROAD_TOP_Y + 0.025 + Math.sin(now * 0.018) * 0.03;
         kartRoot.rotation.y = lerp(kartRoot.rotation.y, -steering * 0.18, 0.12);
         kartRoot.rotation.z = lerp(kartRoot.rotation.z, -steering * 0.12, 0.14);
         kartRoot.rotation.x = lerp(kartRoot.rotation.x, wantsTurbo ? -0.06 : 0, 0.08);
