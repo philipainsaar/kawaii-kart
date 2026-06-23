@@ -13,6 +13,14 @@ const ASSET_PATHS = {
   grass: "/textures/grass-seamless.jpg",
 };
 
+// One tiny level gap prevents z-fighting, while keeping grass, road, and props
+// visually on the same floor.
+const SURFACE_Y = 0.02;
+const ROAD_Y = SURFACE_Y + 0.0012;
+const KART_Z = 1.28;
+const KART_WIDTH = 3.65;
+const TREE_LIFT = 0.075;
+
 export default function CuteKartGame() {
   const mountRef = useRef(null);
   const controlsRef = useRef({ left: false, right: false, turbo: false, drift: false });
@@ -44,8 +52,8 @@ export default function CuteKartGame() {
       0.1,
       160
     );
-    camera.position.set(0, 6.15, 9.65);
-    camera.lookAt(0, 1.1, -9.0);
+    camera.position.set(0, 5.9, 9.05);
+    camera.lookAt(0, 1.18, -8.8);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: false,
@@ -117,21 +125,21 @@ export default function CuteKartGame() {
 
         const grassMat = new THREE.MeshBasicMaterial({ map: grassTexture });
 
-        // Grass is now visually level with the road. The road sits only a tiny hair above it
-        // to avoid z-fighting, so there is no visible step between grass and asphalt.
+        // Grass, road, kart wheels, and tree bases all share this same visual floor.
+        // The road is only 0.0012 units above the grass so it cannot flicker.
         ground = new THREE.Mesh(new THREE.PlaneGeometry(180, 240), grassMat);
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = 0;
+        ground.position.y = SURFACE_Y;
         scene.add(ground);
 
         kartRoot = new THREE.Group();
-        kartRoot.position.set(0, 0, 2.35);
+        kartRoot.position.set(0, SURFACE_Y, KART_Z);
         scene.add(kartRoot);
 
         kartModel = kartScene;
         prepareModel(kartModel);
-        fitModel(kartModel, 2.65);
-        kartModel.position.y += 0.055;
+        fitModel(kartModel, KART_WIDTH);
+        kartModel.position.y += 0.085;
         kartModel.rotation.y = 0;
         kartRoot.add(kartModel);
 
@@ -220,7 +228,7 @@ export default function CuteKartGame() {
         group.userData.baseZ = -i * length;
         group.userData.length = length;
         group.userData.total = total;
-        group.position.y = 0.006;
+        group.position.y = ROAD_Y;
 
         const road = new THREE.Mesh(new THREE.PlaneGeometry(roadWidth, length + 0.08), roadMat);
         road.rotation.x = -Math.PI / 2;
@@ -236,7 +244,7 @@ export default function CuteKartGame() {
         }
 
         const dash = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.026, 1.65), roadLineMat);
-        dash.position.set(0, 0.033, 0);
+        dash.position.set(0, 0.024, 0);
         group.add(dash);
 
         roadSegments.push(group);
@@ -257,6 +265,12 @@ export default function CuteKartGame() {
         tree.userData.wobble = Math.random() * 10;
         tree.rotation.y = Math.random() * Math.PI * 2;
         tree.scale.multiplyScalar(0.8 + (i % 4) * 0.07);
+
+        // Some GLB exports have pivots below the visible trunk. Measure each clone
+        // once and lift it so the lowest visible point sits above the grass.
+        const treeBox = new THREE.Box3().setFromObject(tree);
+        tree.userData.baseY = SURFACE_Y + TREE_LIFT - treeBox.min.y;
+
         trees.push(tree);
         scene.add(tree);
       }
@@ -281,7 +295,7 @@ export default function CuteKartGame() {
         line.userData.baseZ = -i * 6;
         line.userData.total = 120;
         line.userData.x = (Math.random() - 0.5) * 15;
-        line.position.y = 0.04;
+        line.position.y = SURFACE_Y + 0.045;
         speedLines.push(line);
         scene.add(line);
       }
@@ -313,7 +327,7 @@ export default function CuteKartGame() {
       setHearts(0);
 
       if (kartRoot) {
-        kartRoot.position.set(0, 0, 2.35);
+        kartRoot.position.set(0, SURFACE_Y, KART_Z);
         kartRoot.rotation.set(0, 0, 0);
       }
 
@@ -335,20 +349,20 @@ export default function CuteKartGame() {
         const center = centerForZ(z);
         tree.position.z = z;
         tree.position.x = center - playerOffset + tree.userData.side * tree.userData.sideDistance;
-        tree.position.y = 0;
+        tree.position.y = tree.userData.baseY;
         tree.rotation.y += 0.0008 + Math.sin(now * 0.001 + tree.userData.wobble) * 0.00055;
       }
     }
 
     function updateHearts(now) {
-      const kartZ = 2.35;
+      const kartZ = KART_Z;
 
       for (const item of heartSprites) {
         const z = wrapZ(item.userData.baseZ, item.userData.total);
         const center = centerForZ(z);
         item.position.z = z;
         item.position.x = center - playerOffset + item.userData.lane;
-        item.position.y = 1.08 + Math.sin(now * 0.006 + item.userData.baseZ) * 0.18;
+        item.position.y = SURFACE_Y + 1.08 + Math.sin(now * 0.006 + item.userData.baseZ) * 0.18;
         item.rotation.z += 0.05;
 
         if (item.visible && Math.abs(item.position.z - kartZ) < 0.85 && Math.abs(item.position.x) < 0.72) {
@@ -410,8 +424,8 @@ export default function CuteKartGame() {
 
         // The kart remains locked in the center, 2D-racer style.
         kartRoot.position.x = 0;
-        kartRoot.position.z = 2.35;
-        kartRoot.position.y = 0.02 + Math.sin(now * 0.018) * 0.035;
+        kartRoot.position.z = KART_Z;
+        kartRoot.position.y = SURFACE_Y + 0.035 + Math.sin(now * 0.018) * 0.035;
         kartRoot.rotation.y = lerp(kartRoot.rotation.y, -steering * 0.18, 0.12);
         kartRoot.rotation.z = lerp(kartRoot.rotation.z, -steering * 0.12, 0.14);
         kartRoot.rotation.x = lerp(kartRoot.rotation.x, wantsTurbo ? -0.06 : 0, 0.08);
@@ -515,18 +529,20 @@ export default function CuteKartGame() {
           </button>
         </div>
 
-        <button
-          className="turboButton"
-          aria-label="Turbo"
-          onPointerDown={() => hold("turbo", true)}
-          onPointerUp={() => hold("turbo", false)}
-          onPointerCancel={() => hold("turbo", false)}
-          onPointerLeave={() => hold("turbo", false)}
-        >
-          TURBO
-        </button>
+        <div className="touchCenterGap" aria-hidden="true" />
 
         <div className="touchGroup rightGroup">
+          <button
+            className="turboButton"
+            aria-label="Turbo"
+            onPointerDown={() => hold("turbo", true)}
+            onPointerUp={() => hold("turbo", false)}
+            onPointerCancel={() => hold("turbo", false)}
+            onPointerLeave={() => hold("turbo", false)}
+          >
+            TURBO
+          </button>
+
           <button
             className="steerButton"
             aria-label="Steer right"
