@@ -4,7 +4,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #98e9ff;
+  background: #98eaff;
 }
 
 * {
@@ -35,190 +35,85 @@ select {
   height: 100%;
 }
 
-.cuteKartHud {
+.heartCounter {
   position: absolute;
   top: max(16px, env(safe-area-inset-top));
-  left: 14px;
-  right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.cuteKartBadge,
-.cutePause,
-.pill,
-.boostPill,
-.cuteKartStatus {
-  border: 3px solid rgba(84, 39, 66, 0.42);
-  background: rgba(255, 246, 253, 0.82);
-  box-shadow: 0 10px 32px rgba(255, 86, 171, 0.24), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-}
-
-.cuteKartBadge {
-  min-width: 0;
-  display: grid;
-  gap: 1px;
-  padding: 10px 14px;
-  border-radius: 22px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.cuteKartBadge strong {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  font-size: clamp(13px, 3.6vw, 18px);
-  line-height: 1.05;
-  font-weight: 1000;
-}
-
-.miniLabel {
-  color: #ff4ca4;
-  font-size: 11px;
-  font-weight: 1000;
-}
-
-.cutePause {
-  pointer-events: auto;
-  width: 52px;
-  height: 52px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  color: #542742;
-  font-size: 23px;
-  font-weight: 1000;
-}
-
-.cuteKartStats {
-  position: absolute;
-  top: max(86px, calc(env(safe-area-inset-top) + 78px));
-  left: 14px;
-  right: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.pill {
+  right: 16px;
   min-width: 86px;
-  padding: 9px 14px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 3px solid rgba(84, 39, 66, 0.38);
   border-radius: 999px;
   color: #ff3e9c;
-  text-align: center;
-  font-weight: 1000;
-}
-
-.boostPill {
-  width: min(210px, 52vw);
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  color: #6a3351;
-  font-size: 11px;
-  font-weight: 1000;
-  letter-spacing: 0.08em;
-}
-
-.boostTrack {
-  height: 12px;
-  overflow: hidden;
-  border: 2px solid rgba(84, 39, 66, 0.24);
-  border-radius: 999px;
-  background: rgba(255, 198, 232, 0.5);
-}
-
-.boostFill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #ff73bf, #ffe36e, #a7f2ff);
-  transition: width 110ms ease;
-}
-
-.cuteKartStatus {
-  position: absolute;
-  left: 50%;
-  bottom: calc(max(136px, env(safe-area-inset-bottom) + 132px));
-  width: min(380px, calc(100vw - 32px));
-  transform: translateX(-50%);
-  padding: 9px 14px;
-  border-radius: 999px;
-  color: #6a3351;
-  text-align: center;
-  font-size: 13px;
-  font-weight: 900;
+  background: rgba(255, 246, 253, 0.84);
+  box-shadow: 0 10px 32px rgba(255, 86, 171, 0.24), inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
   pointer-events: none;
 }
 
-.cuteKartTouch {
+.heartCounter span {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.heartCounter strong {
+  min-width: 24px;
+  color: #ff3e9c;
+  font-size: 22px;
+  font-weight: 1000;
+  line-height: 1;
+  text-align: center;
+}
+
+.touchControls {
   position: absolute;
   left: 0;
   right: 0;
   bottom: max(20px, env(safe-area-inset-bottom));
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 0 18px;
-  pointer-events: none;
-}
-
-.steerCluster,
-.actionCluster {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
   gap: 12px;
+  padding: 0 16px;
   pointer-events: none;
 }
 
-.actionCluster {
-  align-items: flex-end;
+.touchGroup {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  pointer-events: none;
 }
 
-.cuteKartTouch button {
+.rightGroup {
+  justify-content: flex-end;
+}
+
+.touchControls button {
   pointer-events: auto;
-  border: 4px solid rgba(84, 39, 66, 0.42);
+  border: 4px solid rgba(84, 39, 66, 0.4);
   color: #612f4d;
-  background: rgba(255, 220, 243, 0.84);
-  box-shadow: 0 14px 34px rgba(255, 86, 171, 0.28), inset 0 3px 0 rgba(255, 255, 255, 0.75);
+  background: rgba(255, 220, 243, 0.86);
+  box-shadow: 0 14px 34px rgba(255, 86, 171, 0.26), inset 0 3px 0 rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   font-weight: 1000;
   -webkit-tap-highlight-color: transparent;
 }
 
-.cuteKartTouch button:active {
+.touchControls button:active {
   transform: scale(0.94) translateY(2px);
-  background: rgba(255, 168, 224, 0.92);
+  background: rgba(255, 168, 224, 0.94);
 }
 
-.steerButton {
-  width: clamp(68px, 18vw, 88px);
-  height: clamp(68px, 18vw, 88px);
+.steerButton,
+.driftButton {
+  width: clamp(64px, 17vw, 86px);
+  height: clamp(64px, 17vw, 86px);
   border-radius: 28px;
   font-size: 28px;
-}
-
-.actionButton {
-  height: clamp(56px, 14vw, 72px);
-  padding: 0 14px;
-  border-radius: 999px;
-  font-size: clamp(12px, 3.2vw, 15px);
-  letter-spacing: 0.06em;
-}
-
-.turboButton {
-  color: #7a4e00 !important;
-  background: rgba(255, 241, 170, 0.9) !important;
 }
 
 .driftButton {
@@ -226,95 +121,49 @@ select {
   background: rgba(221, 201, 255, 0.88) !important;
 }
 
-.keyboardHelp {
+.turboButton {
+  height: clamp(58px, 15vw, 74px);
+  min-width: clamp(104px, 28vw, 142px);
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #7a4e00 !important;
+  background: rgba(255, 241, 170, 0.92) !important;
+  font-size: clamp(14px, 3.8vw, 18px);
+  letter-spacing: 0.08em;
+}
+
+.loadingDots {
   position: absolute;
   left: 50%;
-  bottom: 8px;
-  display: none;
-  transform: translateX(-50%);
-  color: rgba(84, 39, 66, 0.68);
-  font-size: 12px;
-  font-weight: 800;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 999px;
+  background: #ff69b8;
+  box-shadow: -26px 0 0 rgba(255, 105, 184, 0.42), 26px 0 0 rgba(255, 105, 184, 0.42);
+  animation: loadingPulse 680ms ease-in-out infinite alternate;
   pointer-events: none;
 }
 
-.cuteKartGameOver {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 22px;
-  background: rgba(255, 208, 238, 0.22);
-  backdrop-filter: blur(6px);
-}
-
-.cuteKartGameOverCard {
-  width: min(340px, calc(100vw - 44px));
-  padding: 24px 22px;
-  border: 4px solid rgba(84, 39, 66, 0.42);
-  border-radius: 34px;
-  color: #542742;
-  background: rgba(255, 248, 253, 0.91);
-  box-shadow: 0 24px 78px rgba(255, 72, 165, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.75);
-  text-align: center;
-}
-
-.gameOverIcon {
-  margin-bottom: 8px;
-  font-size: 42px;
-}
-
-.cuteKartGameOverTitle {
-  margin-bottom: 6px;
-  font-size: 30px;
-  font-weight: 1000;
-  letter-spacing: 0.02em;
-}
-
-.cuteKartGameOverText {
-  margin-bottom: 18px;
-  color: rgba(84, 39, 66, 0.72);
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.cuteKartRestart {
-  border: 0;
-  border-radius: 999px;
-  padding: 13px 20px;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ff56ad, #ff86ca);
-  box-shadow: 0 12px 28px rgba(255, 72, 165, 0.35);
-  font-weight: 1000;
-}
-
-@media (min-width: 840px) {
-  .keyboardHelp {
-    display: block;
+@keyframes loadingPulse {
+  from {
+    transform: scale(0.82);
+    opacity: 0.55;
   }
-
-  .cuteKartTouch {
-    padding-inline: 48px;
+  to {
+    transform: scale(1.08);
+    opacity: 1;
   }
 }
 
 @media (max-width: 430px) {
-  .cuteKartStats {
-    top: max(80px, calc(env(safe-area-inset-top) + 70px));
-  }
-
-  .cuteKartStatus {
-    bottom: calc(max(122px, env(safe-area-inset-bottom) + 118px));
-    font-size: 12px;
-  }
-
-  .cuteKartTouch {
-    padding-inline: 12px;
-    gap: 10px;
-  }
-
-  .steerCluster,
-  .actionCluster {
+  .touchControls {
     gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .touchGroup {
+    gap: 7px;
   }
 }
