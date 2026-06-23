@@ -14,7 +14,7 @@ export default function CuteKartGame() {
 
   const [score, setScore] = useState(0);
   const [boost, setBoost] = useState(0);
-  const [status, setStatus] = useState("Collect hearts, avoid clouds");
+  const [status, setStatus] = useState("Collect hearts and fly fast ✦");
   const [gameOver, setGameOver] = useState(false);
   const [paused, setPaused] = useState(false);
 
@@ -47,11 +47,10 @@ export default function CuteKartGame() {
     camera.position.set(0, 6.4, 10.5);
     camera.lookAt(0, 1.25, -8.5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+    const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: "high-performance" });
     renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.35));
+    renderer.shadowMap.enabled = false;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     mount.appendChild(renderer.domElement);
 
@@ -92,11 +91,7 @@ export default function CuteKartGame() {
 
     const sun = new THREE.DirectionalLight("#ffffff", 2.4);
     sun.position.set(4, 9, 8);
-    sun.castShadow = true;
-    sun.shadow.mapSize.width = 1024;
-    sun.shadow.mapSize.height = 1024;
-    sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 42;
+    sun.castShadow = false;
     scene.add(sun);
 
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(160, 190), mat.grass);
@@ -104,22 +99,6 @@ export default function CuteKartGame() {
     ground.position.y = -0.05;
     ground.receiveShadow = true;
     scene.add(ground);
-
-    function drawRoundRect(ctx, x, y, w, h, r) {
-      if (typeof ctx.roundRect === "function") {
-        ctx.roundRect(x, y, w, h, r);
-        return;
-      }
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + w - r, y);
-      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-      ctx.lineTo(x + w, y + h - r);
-      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      ctx.lineTo(x + r, y + h);
-      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-    }
 
     function makeFaceSprite({ blush = true } = {}) {
       const canvas = document.createElement("canvas");
@@ -175,47 +154,6 @@ export default function CuteKartGame() {
       ctx.beginPath();
       ctx.arc(size * 0.41, size * 0.36, size * 0.07, 0, Math.PI * 2);
       ctx.fill();
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      return new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
-    }
-
-    function makeCloudSprite({ face = true, color = "#ffffff" } = {}) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 256;
-      const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, 512, 256);
-      ctx.fillStyle = color;
-      ctx.strokeStyle = "#dfabd0";
-      ctx.lineWidth = 10;
-      ctx.beginPath();
-      ctx.arc(160, 130, 62, 0, Math.PI * 2);
-      ctx.arc(230, 90, 76, 0, Math.PI * 2);
-      ctx.arc(318, 130, 58, 0, Math.PI * 2);
-      drawRoundRect(ctx, 120, 120, 250, 70, 35);
-      ctx.fill();
-      ctx.stroke();
-
-      if (face) {
-        ctx.fillStyle = pastel.ink;
-        ctx.beginPath();
-        ctx.arc(220, 130, 8, 0, Math.PI * 2);
-        ctx.arc(288, 130, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = pastel.ink;
-        ctx.lineWidth = 6;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.arc(254, 138, 18, 0.14, Math.PI - 0.14, false);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255, 120, 160, 0.7)";
-        ctx.beginPath();
-        ctx.arc(194, 150, 14, 0, Math.PI * 2);
-        ctx.arc(316, 150, 14, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
       return new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
@@ -407,7 +345,7 @@ export default function CuteKartGame() {
     }
 
     const roadSegments = [];
-    const segmentCount = 34;
+    const segmentCount = 28;
     const segmentLength = 4.1;
     const roadWidth = 7.8;
 
@@ -455,7 +393,7 @@ export default function CuteKartGame() {
       return tree;
     }
 
-    for (let i = 0; i < 42; i += 1) {
+    for (let i = 0; i < 24; i += 1) {
       const side = i % 2 === 0 ? -1 : 1;
       const tree = makeTree();
       tree.userData.distance = 8 + Math.random() * 125;
@@ -466,20 +404,8 @@ export default function CuteKartGame() {
       scenery.push(tree);
     }
 
-    const clouds = [];
-    for (let i = 0; i < 18; i += 1) {
-      const cloud = makeCloudSprite({ face: true });
-      cloud.userData.distance = 8 + Math.random() * 95;
-      cloud.userData.side = Math.random() < 0.5 ? -1 : 1;
-      cloud.userData.offset = 7 + Math.random() * 13;
-      cloud.position.y = 5.5 + Math.random() * 7;
-      cloud.scale.setScalar(2.1 + Math.random() * 1.9);
-      scene.add(cloud);
-      clouds.push(cloud);
-    }
-
     const floatingStars = [];
-    for (let i = 0; i < 12; i += 1) {
+    for (let i = 0; i < 8; i += 1) {
       const star = makeStarSprite();
       star.userData.distance = 10 + Math.random() * 95;
       star.userData.side = Math.random() < 0.5 ? -1 : 1;
@@ -499,7 +425,7 @@ export default function CuteKartGame() {
       item.visible = true;
     }
 
-    for (let i = 0; i < 16; i += 1) {
+    for (let i = 0; i < 14; i += 1) {
       const heart = makeHeartSprite();
       heart.scale.set(0.75, 0.75, 1);
       heart.userData.kind = "heart";
@@ -508,17 +434,17 @@ export default function CuteKartGame() {
       items.push(heart);
     }
 
-    for (let i = 0; i < 9; i += 1) {
-      const cloudPuff = makeCloudSprite({ face: true, color: "#fff7fe" });
-      cloudPuff.scale.set(1.05, 0.62, 1);
-      cloudPuff.userData.kind = "obstacle";
-      spawnTrackItem(cloudPuff, 35, 130);
-      scene.add(cloudPuff);
-      items.push(cloudPuff);
+    for (let i = 0; i < 8; i += 1) {
+      const turboStar = makeStarSprite();
+      turboStar.scale.set(0.62, 0.62, 1);
+      turboStar.userData.kind = "star";
+      spawnTrackItem(turboStar, 28, 135);
+      scene.add(turboStar);
+      items.push(turboStar);
     }
 
     const sparkles = [];
-    for (let i = 0; i < 28; i += 1) {
+    for (let i = 0; i < 18; i += 1) {
       const sparkle = makeStarSprite();
       sparkle.visible = false;
       sparkle.scale.setScalar(0.18 + Math.random() * 0.14);
@@ -539,7 +465,7 @@ export default function CuteKartGame() {
       boostValue = clamp(boostValue - 35, 0, 100);
       setStatus("Turbo hearts! ✦");
       setTimeout(() => {
-        if (!crashed) setStatus("Collect hearts, avoid clouds");
+        if (!crashed) setStatus("Collect hearts and fly fast ✦");
       }, 950);
     }
 
@@ -557,7 +483,7 @@ export default function CuteKartGame() {
       kart.rotation.set(0, 0, 0);
       items.forEach((item) => spawnTrackItem(item, 20, 125));
       setGameOver(false);
-      setStatus("Collect hearts, avoid clouds");
+      setStatus("Collect hearts and fly fast ✦");
       updateUi(performance.now(), true);
     }
 
@@ -567,7 +493,7 @@ export default function CuteKartGame() {
       if (crashed) return;
       crashed = true;
       setGameOver(true);
-      setStatus("Cloud bonk! Press R");
+      setStatus("Keep racing forever ✦");
     }
 
     const keys = { left: false, right: false, drift: false, turbo: false };
@@ -643,28 +569,33 @@ export default function CuteKartGame() {
 
         if (item.userData.kind === "heart") {
           item.position.y = 1.35 + Math.sin(now * 0.004 + d) * 0.16;
-          item.rotation.z += dt * 2.1;
+          item.rotation.z += dt * 2.4;
         } else {
-          item.position.y = 0.85 + Math.sin(now * 0.003 + d) * 0.08;
-          item.rotation.z = Math.sin(now * 0.002 + d) * 0.05;
+          item.position.y = 1.75 + Math.sin(now * 0.005 + d) * 0.22;
+          item.rotation.z += dt * 1.7;
         }
 
         const closeZ = Math.abs(item.position.z - kart.position.z);
         const closeX = Math.abs(item.position.x - kart.position.x);
 
-        if (item.visible && closeZ < 0.85 && closeX < 0.82) {
+        if (item.visible && closeZ < 0.9 && closeX < 0.86) {
+          item.visible = false;
+
           if (item.userData.kind === "heart") {
-            item.visible = false;
             scoreValue += 10;
-            boostValue = clamp(boostValue + 12, 0, 100);
+            boostValue = clamp(boostValue + 14, 0, 100);
             setStatus("Sweet heart collected ♡");
-            setTimeout(() => {
-              if (!crashed) setStatus("Collect hearts, avoid clouds");
-            }, 650);
-            spawnTrackItem(item, 90, 150);
           } else {
-            crash();
+            scoreValue += 25;
+            boostValue = clamp(boostValue + 28, 0, 100);
+            startTurbo(0.85);
+            setStatus("Turbo star! ✦");
           }
+
+          setTimeout(() => {
+            if (!crashed) setStatus("Collect hearts and fly fast ✦");
+          }, 520);
+          spawnTrackItem(item, 90, 155);
         }
       }
     }
@@ -713,10 +644,10 @@ export default function CuteKartGame() {
       if (!crashed) {
         if (turboPressed && boostValue >= 35) startTurbo(1.25);
 
-        const baseSpeed = 12.8;
-        const turboSpeed = boostTimer > 0 ? 7.6 : 0;
-        const driftPenalty = drifting ? -1.5 : 0;
-        const speed = baseSpeed + turboSpeed + driftPenalty + Math.min(scoreValue * 0.006, 2.2);
+        const baseSpeed = 24.5;
+        const turboSpeed = boostTimer > 0 ? 19.5 : 0;
+        const driftPenalty = drifting ? -0.8 : 0;
+        const speed = baseSpeed + turboSpeed + driftPenalty + Math.min(scoreValue * 0.012, 7.5);
 
         trackScroll += speed * dt;
         boostTimer = Math.max(0, boostTimer - dt);
@@ -753,10 +684,6 @@ export default function CuteKartGame() {
         updateItems(dt, speed, now);
 
         for (const tree of scenery) updateSceneryObject(tree, dt, speed, 0);
-        for (const cloud of clouds) {
-          updateSceneryObject(cloud, dt, speed * 0.18, 0);
-          cloud.position.y += Math.sin(now * 0.001 + cloud.userData.distance) * 0.004;
-        }
         for (const star of floatingStars) {
           updateSceneryObject(star, dt, speed * 0.36, 0);
           star.rotation.z += dt * 0.9;
@@ -854,8 +781,8 @@ export default function CuteKartGame() {
       {gameOver && (
         <div className="cuteKartGameOver">
           <div className="cuteKartGameOverCard">
-            <div className="gameOverIcon">☁️</div>
-            <div className="cuteKartGameOverTitle">Cloud Bonk!</div>
+            <div className="gameOverIcon">✦</div>
+            <div className="cuteKartGameOverTitle">Race paused!</div>
             <div className="cuteKartGameOverText">Hearts collected: {score}</div>
             <button type="button" className="cuteKartRestart" onClick={() => restartRef.current?.()}>
               Restart race
@@ -875,7 +802,7 @@ export default function CuteKartGame() {
         </div>
       </div>
 
-      <div className="keyboardHelp">Keyboard: A/D or arrows, Space/Shift drift, W turbo, R restart</div>
+      <div className="keyboardHelp">Keyboard: A/D or arrows, Space/Shift drift, W turbo</div>
     </main>
   );
 }
