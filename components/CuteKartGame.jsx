@@ -20,6 +20,9 @@ const ROAD_TOP_Y = SURFACE_Y + ROAD_THICKNESS;
 const KART_Z = -1.05;
 const KART_WIDTH = 4.35;
 const TREE_LIFT = 0.08;
+// The imported GLB front points toward the camera by default.
+// Rotate the model 180° so the kart drives away from the camera and you see the back.
+const KART_MODEL_Y_ROTATION = Math.PI;
 
 export default function CuteKartGame() {
   const mountRef = useRef(null);
@@ -140,7 +143,7 @@ export default function CuteKartGame() {
         prepareModel(kartModel);
         fitModel(kartModel, KART_WIDTH);
         kartModel.position.y += 0.035;
-        kartModel.rotation.y = 0;
+        kartModel.rotation.y = KART_MODEL_Y_ROTATION;
         kartRoot.add(kartModel);
 
         treeModel = treeScene;
